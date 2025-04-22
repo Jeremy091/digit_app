@@ -2,21 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digit Predictor</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Digit Predictor</h1>
-
-    <input type="file" id="fileInput" accept="image/*">
+    <h1>Digit Recognition</h1>
+    <input type="file" id="fileInput">
     <div id="preview"></div>
-
-    <div id="progress-container">
-        <div id="progress-bar"></div>
-    </div>
-
     <button id="predictButton">Predict</button>
+
+    <div id="progress-container" style="width: 100%; background: #eee; height: 20px; display: none; margin-top: 10px;">
+        <div id="progress-bar" style="width: 0%; height: 100%; background: green;"></div>
+    </div>
 
     <h2 id="result"></h2>
 

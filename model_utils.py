@@ -1,56 +1,38 @@
 import numpy as np
 import cv2
+import tensorflow as tf
 from tensorflow.keras.models import load_model
+import imageio
 
-_model = load_model("digit_model_color_augment.h5")
+_model = load_model('digit_model_color_augment.h5')
 
-def preprocess_custom(img: np.ndarray) -> np.ndarray:
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-    # Apply Otsu thresholding
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-    # Morphological operations
-    kernel = np.ones((3, 3), np.uint8)
-    morph = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-    # Find bounding box
-    coords = cv2.findNonZero(morph)
-    x, y, w, h = cv2.boundingRect(coords)
-
-    digit = morph[y:y+h, x:x+w]
-
-    # Resize and center
-    canvas = np.ones((64, 64), dtype=np.uint8) * 0
-    digit = cv2.resize(digit, (32, 32))
-    start_x = (64 - 32) // 2
-    start_y = (64 - 32) // 2
-    canvas[start_y:start_y+32, start_x:start_x+32] = digit
-
-    # Normalize and stack
+def preprocess_custom(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if img.ndim == 3 else img
+    _, thresh = cv2.threshold(
+        gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+    )
+    cnts, _ = cv2.findContours(
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+    x, y, w, h = cv2.boundingRect(max(cnts, key=cv2.contourArea))
+    digit = thresh[y:y+h, x:x+w]
+    k = 20.0 / max(w, h)
+    digit = cv2.resize(digit, (int(w*k), int(h*k)))
+    canvas = np.zeros((28,28), dtype=np.uint8)
+    dx, dy = (28 - digit.shape[1]) // 2, (28 - digit.shape[0]) // 2
+    canvas[dy:dy+digit.shape[0], dx:dx+digit.shape[1]] = digit
     canvas = canvas.astype('float32') / 255.0
-    canvas = np.stack([canvas]*3, axis=-1)
+    return np.repeat(canvas[..., None], 3, axis=-1)
 
-    return canvas
+def predict_image(file_bytes):
+    img = imageio.imread(file_bytes)
+    if img.ndim == 4:  # RGBA
+        img = img[..., :3]
 
-def predict_image(file_bytes_io):
-    data = file_bytes_io.read() if hasattr(file_bytes_io, 'read') else file_bytes_io
-    nparr = np.frombuffer(data, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
-    if img is None:
-        raise ValueError("No se pudo decodificar la imagen")
-    
-    if img.ndim == 3:
-        if img.shape[2] == 4:
-            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGB)
-        else:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    
     proc = preprocess_custom(img)
-    X = np.expand_dims(proc, axis=0).astype('float32')
+    X = np.expand_dims(proc, axis=0)
+    pred = _model.predict(X, verbose=0)[0]
 
-    preds = _model.predict(X)
-    digit = int(np.argmax(preds[0]))
-    confidence = float(np.max(preds[0]))
+    digit = int(np.argmax(pred))
+    confidence = float(np.max(pred))
     return {"digit": digit, "confidence": confidence}

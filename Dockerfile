@@ -1,25 +1,30 @@
-# Dockerfile
+# Usar imagen base liviana de Python
 FROM python:3.9-slim
 
-# 1) Instalar librerías de sistema necesarias para cv2
+# Instalar dependencias del sistema para OpenCV
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         libgl1-mesa-glx \
         libglib2.0-0 \
         libsm6 \
         libxext6 && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 2) Directorio de trabajo e instalación de dependencias Python
+# Definir el directorio de trabajo
 WORKDIR /app
+
+# Copiar primero requirements para aprovechar cache de Docker
 COPY requirements.txt .
+
+# Instalar dependencias Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 3) Copiar el código de la aplicación
+# Copiar el resto de la aplicación
 COPY . .
 
-# 4) Exponer el puerto que utiliza Flask
+# Exponer el puerto
 EXPOSE 5000
 
-# 5) Comando por defecto al arrancar
+# Comando para arrancar la app
 CMD ["python", "app.py"]
