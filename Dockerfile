@@ -1,17 +1,25 @@
 # Dockerfile
 FROM python:3.9-slim
 
-WORKDIR /app
+# 1) Instalar librerías de sistema necesarias para cv2
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Instalamos dependencias
+# 2) Directorio de trabajo e instalación de dependencias Python
+WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiamos el código al contenedor
+# 3) Copiar el código de la aplicación
 COPY . .
 
-# Exponemos el puerto 5000 para Flask
+# 4) Exponer el puerto que utiliza Flask
 EXPOSE 5000
 
-# Comando por defecto al iniciar el contenedor
+# 5) Comando por defecto al arrancar
 CMD ["python", "app.py"]
