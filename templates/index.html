@@ -1,14 +1,25 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Clasificador de Dígitos</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digit Predictor</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <h1>Sube un dígito animado</h1>
-  <input type="file" id="fileInput" accept="image/*"/>
-  <button id="btnUpload">Predecir</button>
-  <div id="result"></div>
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <h1>Digit Predictor</h1>
+
+    <input type="file" id="fileInput" accept="image/*">
+    <div id="preview"></div>
+
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <button id="predictButton">Predict</button>
+
+    <h2 id="result"></h2>
+
+    <script src="/static/main.js"></script>
 </body>
 </html>
