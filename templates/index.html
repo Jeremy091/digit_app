@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clasificador de Dígitos</title>
+</head>
+<body>
+  <h1>Sube un dígito animado</h1>
+  <input type="file" id="fileInput" accept="image/*"/>
+  <button id="btnUpload">Predecir</button>
+  <div id="result"></div>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
